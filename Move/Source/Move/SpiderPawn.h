@@ -13,6 +13,11 @@ class MOVE_API ASpiderPawn : public APawn
 private:
     USkeletalMeshComponent * GetMesh();
     
+    void TransitionToWall();
+
+    void UpdateSurface();
+
+
 public:
 	// Sets default values for this pawn's properties
 	ASpiderPawn();
@@ -29,10 +34,19 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spider Move")
     float speed;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spider Move")
+    float rotationSpeed;
+
     UFUNCTION(BlueprintCallable, Category = "Spider Move")
     void MoveForward();
+
+    UFUNCTION(BlueprintCallable, Category = "Spider Move")
+    void MoveBackward();
     
     UFUNCTION(BlueprintCallable, Category = "Spider Move")
-    void Rotate(int32 direction);
+    void RotateRight();
+
+    UFUNCTION(BlueprintCallable, Category = "Spider Move")
+    void RotateLeft();
 
 };
