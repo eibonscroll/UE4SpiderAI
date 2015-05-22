@@ -8,8 +8,11 @@
 UCLASS()
 class MOVE_API ASpiderPawn : public APawn
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
+private:
+    USkeletalMeshComponent * GetMesh();
+    
 public:
 	// Sets default values for this pawn's properties
 	ASpiderPawn();
@@ -22,6 +25,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spider Move")
+    float speed;
 
     UFUNCTION(BlueprintCallable, Category = "Spider Move")
     void MoveForward();
