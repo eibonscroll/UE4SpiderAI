@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Pawn.h"
+#include "SpiderMovementComponent.h"
 #include "SpiderPawn.generated.h"
 
 UCLASS()
@@ -13,10 +14,23 @@ class MOVE_API ASpiderPawn : public APawn
 private:
     USkeletalMeshComponent * GetMesh();
     
-    void TransitionToWall();
+    bool TransitionToWall();
 
-    void UpdateSurface();
+    FVector LastSurfaceNormal;
 
+    FVector GetZVector();
+
+    FVector DirectionSocketLocation;
+
+    FVector UnderBellySocketLoc; 
+    FVector FrontSocketLoc; 
+    FVector BellySocketLoc; 
+    FVector FLSocketLoc;
+    FVector FRSocketLoc; 
+    FVector BLSocketLoc; 
+    FVector BRSocketLoc; 
+
+    void StickToSurface();
 
 public:
 	// Sets default values for this pawn's properties
@@ -38,6 +52,9 @@ public:
     float rotationSpeed;
 
     UFUNCTION(BlueprintCallable, Category = "Spider Move")
+    void StopMovement();
+
+    UFUNCTION(BlueprintCallable, Category = "Spider Move")
     void MoveForward();
 
     UFUNCTION(BlueprintCallable, Category = "Spider Move")
@@ -49,4 +66,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Spider Move")
     void RotateLeft();
 
+    class USpiderMovementComponent* MovementComponent;
+
+    virtual UPawnMovementComponent* GetMovementComponent() const override;
 };
