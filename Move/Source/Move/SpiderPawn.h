@@ -14,7 +14,7 @@ class MOVE_API ASpiderPawn : public APawn
 private:
     USkeletalMeshComponent * GetMesh();
     
-    bool TransitionToWall();
+    bool TransitionToWall(bool IsConvex);
 
     FVector LastSurfaceNormal;
 
@@ -29,6 +29,7 @@ private:
     FVector FRSocketLoc; 
     FVector BLSocketLoc; 
     FVector BRSocketLoc; 
+    FVector ConvexCheckLoc;
 
     void StickToSurface();
 

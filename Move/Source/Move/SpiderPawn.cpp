@@ -53,6 +53,7 @@ void ASpiderPawn::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+    bool DidTransition = false;
     //Do Spider Traces
             DirectionSocketLocation = GetMesh()->GetSocketLocation("DetectionSocket");
 
@@ -63,6 +64,7 @@ void ASpiderPawn::Tick( float DeltaTime )
             FRSocketLoc = GetMesh()->GetSocketLocation("FR");
             BLSocketLoc = GetMesh()->GetSocketLocation("BL");
             BRSocketLoc = GetMesh()->GetSocketLocation("BR");
+            ConvexCheckLoc = GetMesh()->GetSocketLocation("ConvexCheck");
 
             FVector ChararacterForwardVector = GetActorForwardVector();
             FVector ChararacterLocation = GetActorLocation();
@@ -76,6 +78,7 @@ void ASpiderPawn::Tick( float DeltaTime )
 
             //The trace data is stored here
             FHitResult HitData(ForceInit);
+            FHitResult HitData2(ForceInit);
 
             static FName SpiderTraceIdent = FName(TEXT("SpidferTrace"));
             FCollisionQueryParams TraceParams(SpiderTraceIdent, true, this);
@@ -85,24 +88,34 @@ void ASpiderPawn::Tick( float DeltaTime )
 
             //GetWorld()->DebugDrawTraceTag = TraceTag;
             //TraceParams.TraceTag = TraceTag;
-            FVector HitNormal;
+            FVector HitNormal, HitNormal2;
 
-
-            //Point directly in front
-            if (GetWorld()->LineTraceSingle(HitData, BellySocketLoc, FrontSocketLoc, ECollisionChannel::ECC_Pawn, TraceParams))
+            //Check if convex corner
+            if (!GetWorld()->LineTraceSingle(HitData, DirectionSocketLocation, FLSocketLoc, ECollisionChannel::ECC_Pawn, TraceParams) && 
+                !GetWorld()->LineTraceSingle(HitData2, DirectionSocketLocation, FRSocketLoc, ECollisionChannel::ECC_Pawn, TraceParams))
             {
                 HitNormal = HitData.ImpactNormal;
-                //if (HitData.GetActor() && (HitNormal.Y <= -0.02 || HitNormal.Y >= 0.02 || HitNormal.X <= -0.02 || HitNormal.X >= 0.02))
+                HitNormal2 = HitData2.ImpactNormal;
+
+                if (!HitData.GetActor() && !HitData2.GetActor())
+                {
+                    DidTransition = TransitionToWall(true);
+                }
+            }
+            //Point directly in front
+            else if (GetWorld()->LineTraceSingle(HitData, BellySocketLoc, FrontSocketLoc, ECollisionChannel::ECC_Pawn, TraceParams))
+            {
+                HitNormal = HitData.ImpactNormal;
                 if (HitData.GetActor())
                 {
-                    TransitionToWall();
-                    //FString hitMessage = HitData.GetActor()->GetName();
-                    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, *hitMessage);
+                    DidTransition = TransitionToWall(false);
                 }
             }
 
-            if(! TransitionToWall() )
+            if (!DidTransition)
+            {
                 StickToSurface();
+            }
 }
 
 // Called to bind functionality to input
@@ -154,7 +167,7 @@ void ASpiderPawn::StickToSurface()
     SetActorTransform(newTransform);
 }
 
-bool ASpiderPawn::TransitionToWall()
+bool ASpiderPawn::TransitionToWall(bool IsConvex)
 {
     bool retval = false;
 
@@ -167,29 +180,42 @@ bool ASpiderPawn::TransitionToWall()
 
     queryParams.AddIgnoredActor(this);
 
+    FVector Start, End;
+
     FVector under;
 
     FVector newUp;
     FVector newForward;
     FVector newRight;
 
-    //Trace to get the surface normal in front of actor
-    if (world->LineTraceSingle(hitResultTrace, BellySocketLoc, FrontSocketLoc, queryParams, objQueryParams))
+    if (!IsConvex)
     {
-            under = hitResultTrace.ImpactPoint;
-            newUp = hitResultTrace.ImpactNormal;
-
-            //Some math to get the new Axis
-            FVector currentRightVect = GetActorRightVector();
-            newForward = FVector::CrossProduct(currentRightVect, newUp);
-            newRight = FVector::CrossProduct(newUp, newForward);
-
-            //Build the new transform!
-            FTransform newTransform(newForward, newRight, newUp, under);
-            SetActorTransform(newTransform);
-            retval = true;
+        Start = BellySocketLoc;
+        End = FrontSocketLoc;
+    }
+    else
+    {
+        Start = FrontSocketLoc;
+        End = ConvexCheckLoc;
     }
 
+    //Trace to get the surface normal in front of actor
+    if (world->LineTraceSingle(hitResultTrace, Start, End, queryParams, objQueryParams))
+    {
+        under = hitResultTrace.ImpactPoint;
+        newUp = hitResultTrace.ImpactNormal;
+
+        //Some math to get the new Axis
+        FVector currentRightVect = GetActorRightVector();
+        newForward = FVector::CrossProduct(currentRightVect, newUp);
+        newRight = FVector::CrossProduct(newUp, newForward);
+
+        //Build the new transform!
+        FTransform newTransform(newForward, newRight, newUp, under);
+        SetActorTransform(newTransform);
+        retval = true;
+    }
+ 
     return retval;
 }
 
