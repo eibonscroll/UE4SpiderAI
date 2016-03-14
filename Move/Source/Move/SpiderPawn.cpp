@@ -84,10 +84,10 @@ void ASpiderPawn::Tick( float DeltaTime )
             FCollisionQueryParams TraceParams(SpiderTraceIdent, true, this);
             TraceParams.bTraceAsyncScene = true;
             
-            //const FName TraceTag("SpiderTraceTag");
+            const FName TraceTag("SpiderTraceTag");
 
-            //GetWorld()->DebugDrawTraceTag = TraceTag;
-            //TraceParams.TraceTag = TraceTag;
+            GetWorld()->DebugDrawTraceTag = TraceTag;
+            TraceParams.TraceTag = TraceTag;
             FVector HitNormal, HitNormal2;
 
             //Check if convex corner
